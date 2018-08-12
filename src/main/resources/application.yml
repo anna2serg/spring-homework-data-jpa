@@ -1,0 +1,12 @@
+spring.shell.interactive.enabled: true
+
+spring.profiles.active: prod
+spring.datasource.platform: prod
+spring.datasource.initialization-mode: always
+spring.jpa.hibernate.ddl-auto: none
+spring.datasource.url: jdbc:postgresql://localhost:5432/bookcardDB 
+spring.datasource.username: scribe 
+spring.datasource.password: scribe 
+
+application: 
+ fetchsize: 5
