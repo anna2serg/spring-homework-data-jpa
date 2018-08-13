@@ -43,7 +43,10 @@ public class BookCommands {
     		filters.put("author_id", authorId);
     	if (genreId != null && !genreId.isEmpty()) 
     		filters.put("genre_id", genreId);   
-    	fetcher.output(service.getBookAll(filters));
+    	//fetcher.output(
+    			service.getBookAll(filters)
+    			//)
+    			;
     }
     
     @ShellMethod(value = "показать информацию о книге")

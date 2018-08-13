@@ -6,16 +6,19 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.querydsl.core.types.Predicate;
+import com.querydsl.core.BooleanBuilder;
 
 import ru.homework.domain.Author;
 import ru.homework.domain.Book;
 import ru.homework.domain.Comment;
 import ru.homework.domain.Genre;
-import ru.homework.domain.QAuthor;
 import ru.homework.domain.QBook;
 import ru.homework.exception.EntityNotFoundException;
 import ru.homework.exception.InvalidOperationException;
@@ -160,24 +163,48 @@ public class BookcardService {
 	}		
 	
 	public List<Book> getBookAll(HashMap<String, String> filters) {
-
-		Predicate bookNameLike = null;
-		Predicate bookAuthorLike = null;
-		
-		if (filters.get("name")!= null && !filters.get("name").isEmpty()) {
-			QBook gBook = QBook.book;
-			bookNameLike = gBook.name.like("%"+filters.get("name")+"%");	
-		}
-		if (filters.get("author")!= null && !filters.get("author").isEmpty()) {
-			QAuthor qAuthor = QAuthor.author;
-			QBook gBook = QBook.book;
-			String author = "%"+filters.get("author")+"%";		
-			bookAuthorLike = gBook.authors.any().firstname.like(author).or(gBook.authors.any().surname.like(author)).or(gBook.authors.any().middlename.like(author));			
-		}
 		
 		List<Book> result = new ArrayList<>();
-		bookRepostory.findAll(bookAuthorLike).forEach(result::add);
+		QBook gBook = QBook.book;
+		BooleanBuilder builder = new BooleanBuilder();
 		
+		if (filters.get("name")!= null && !filters.get("name").isEmpty()) {	
+			builder.and(gBook.name.toLowerCase().like("%"+filters.get("name").toLowerCase()+"%"));
+		}
+		if (filters.get("author")!= null && !filters.get("author").isEmpty()) {
+			String author = "%"+filters.get("author").toLowerCase()+"%";		
+			builder.and(gBook.authors.any().firstname.toLowerCase().like(author)
+				    .or(gBook.authors.any().surname.toLowerCase().like(author))
+				    .or(gBook.authors.any().middlename.toLowerCase().like(author)));
+		}
+		if (filters.get("genre")!= null && !filters.get("genre").isEmpty()) {	
+			builder.and(gBook.genre.name.toLowerCase().like("%"+filters.get("genre").toLowerCase()+"%"));
+		}	
+		if (filters.get("author_id")!= null && !filters.get("author_id").isEmpty()) {
+			int author_id = getInt(filters.get("author_id"));
+			if (author_id!=-1) 
+				builder.and(gBook.authors.any().id.eq(author_id));
+		}	
+		if (filters.get("genre_id")!= null && !filters.get("genre_id").isEmpty()) {	
+			int genre_id = getInt(filters.get("genre_id"));
+			if (genre_id!=-1)
+				builder.and(gBook.genre.id.eq(genre_id));
+		}			
+
+		Pageable pageable = PageRequest.of(0, 3,
+	              Sort.by("name").descending());
+		
+		while(true){
+            Page<Book> page = bookRepostory.findAll(builder, pageable)/*.forEach(result::add)*/;	
+            System.out.println("Page no: "+page.getNumber());
+            page.getContent().forEach(System.out::println);
+            if(!page.hasNext()){
+                break;
+            }
+            pageable = page.nextPageable();
+        }		
+		
+	
 		return result;
 	}	
 	
