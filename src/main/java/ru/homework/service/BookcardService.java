@@ -9,10 +9,14 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.querydsl.core.types.Predicate;
+
 import ru.homework.domain.Author;
 import ru.homework.domain.Book;
 import ru.homework.domain.Comment;
 import ru.homework.domain.Genre;
+import ru.homework.domain.QAuthor;
+import ru.homework.domain.QBook;
 import ru.homework.exception.EntityNotFoundException;
 import ru.homework.exception.InvalidOperationException;
 import ru.homework.exception.InvalidValueFormatException;
@@ -156,7 +160,25 @@ public class BookcardService {
 	}		
 	
 	public List<Book> getBookAll(HashMap<String, String> filters) {
-		return bookRepostory.getAll(filters);
+
+		Predicate bookNameLike = null;
+		Predicate bookAuthorLike = null;
+		
+		if (filters.get("name")!= null && !filters.get("name").isEmpty()) {
+			QBook gBook = QBook.book;
+			bookNameLike = gBook.name.like("%"+filters.get("name")+"%");	
+		}
+		if (filters.get("author")!= null && !filters.get("author").isEmpty()) {
+			QAuthor qAuthor = QAuthor.author;
+			QBook gBook = QBook.book;
+			String author = "%"+filters.get("author")+"%";		
+			bookAuthorLike = gBook.authors.any().firstname.like(author).or(gBook.authors.any().surname.like(author)).or(gBook.authors.any().middlename.like(author));			
+		}
+		
+		List<Book> result = new ArrayList<>();
+		bookRepostory.findAll(bookAuthorLike).forEach(result::add);
+		
+		return result;
 	}	
 	
 	public Book getBook(String book) throws EntityNotFoundException, NotUniqueEntityFoundException {		
