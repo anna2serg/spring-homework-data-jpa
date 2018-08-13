@@ -36,12 +36,14 @@ public class BookcardService {
 	private final GenreRepository genreRepostory;
 	private final AuthorRepository authorRepostory;
 	private final CommentRepository commentRepostory;
+	private final FetchDataService fetcher;
 
-	public BookcardService(AuthorRepository authorRepostory, BookRepository bookRepostory, GenreRepository genreRepostory, CommentRepository commentRepostory) {
+	public BookcardService(AuthorRepository authorRepostory, BookRepository bookRepostory, GenreRepository genreRepostory, CommentRepository commentRepostory, FetchDataService fetcher) {
 		this.authorRepostory = authorRepostory;
 		this.bookRepostory = bookRepostory;
 		this.genreRepostory = genreRepostory;
 		this.commentRepostory = commentRepostory;
+		this.fetcher = fetcher;
 	}
 
 	private int getInt(String id) {
@@ -53,6 +55,17 @@ public class BookcardService {
 	    } 
 		return result;
 	}
+	
+	public <T> void output(Page<T> page, Sort sort) {
+		while(true){
+            System.out.println("Страница " + page.getNumber() + " из " + page.getTotalPages()); 
+            page.getContent().forEach(System.out::println);
+            if(!page.hasNext()){
+                break;
+            }
+            Pageable pageable = page.nextPageable();
+        }	
+	}		
 	
 	public Genre getGenre(String genre) throws EntityNotFoundException {
 		Genre result = null;
@@ -190,22 +203,22 @@ public class BookcardService {
 			if (genre_id!=-1)
 				builder.and(gBook.genre.id.eq(genre_id));
 		}			
-
-		Pageable pageable = PageRequest.of(0, 3,
-	              Sort.by("name").descending());
 		
-		while(true){
-            Page<Book> page = bookRepostory.findAll(builder, pageable)/*.forEach(result::add)*/;	
-            System.out.println("Page no: "+page.getNumber());
+		Pageable pageable = PageRequest.of(0, 3, Sort.by("name").descending());
+		output(bookRepostory.findAll(builder, pageable), Sort.by("name").descending()); 
+		
+		/*while(true){
+            Page<Book> page = bookRepostory.findAll(builder, pageable);	
+            System.out.println("Страница " + page.getNumber() + " из " + page.getTotalPages()); 
             page.getContent().forEach(System.out::println);
             if(!page.hasNext()){
                 break;
             }
             pageable = page.nextPageable();
-        }		
+        }*/	
 		
-	
 		return result;
+
 	}	
 	
 	public Book getBook(String book) throws EntityNotFoundException, NotUniqueEntityFoundException {		
