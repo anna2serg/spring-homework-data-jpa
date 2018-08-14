@@ -18,6 +18,7 @@ import ru.homework.domain.Comment;
 import ru.homework.domain.Genre;
 import ru.homework.domain.QAuthor;
 import ru.homework.domain.QBook;
+import ru.homework.domain.QComment;
 import ru.homework.domain.QGenre;
 import ru.homework.exception.EntityNotFoundException;
 import ru.homework.exception.InvalidOperationException;
@@ -83,7 +84,9 @@ public class BookcardService {
 	}	
 	
 	public void getGenreAll(String name) {
-		fetcher.print(genreRepostory::findAll, genreBuilder(name), Sort.by("name").descending());
+		fetcher.print(genreRepostory::findAll,
+					  genreBuilder(name), 
+					  Sort.by("name").descending());
 	}	
 	
 	@Transactional 
@@ -161,7 +164,9 @@ public class BookcardService {
 	}		
 	
 	public void getAuthorAll(String name) {
-		fetcher.print(authorRepostory::findAll, authorBuilder(name), Sort.by("surname").ascending().and(Sort.by("firstname").ascending()));  		
+		fetcher.print(authorRepostory::findAll, 
+					  authorBuilder(name), 
+					  Sort.by("surname").ascending().and(Sort.by("firstname").ascending()));  		
 	}		
 	
 	@Transactional 
@@ -224,7 +229,9 @@ public class BookcardService {
 	}
 	
 	public void getBookAll(HashMap<String, String> filters) {
-		fetcher.print(bookRepostory::findAll,bookBuilder(filters), Sort.by("name").ascending());
+		fetcher.print(bookRepostory::findAll,
+					  bookBuilder(filters), 
+					  Sort.by("name").ascending());
 	}	
 	
 	public Book getBook(String book) throws EntityNotFoundException, NotUniqueEntityFoundException {		
@@ -383,7 +390,7 @@ public class BookcardService {
 			throw new InvalidValueFormatException(String.format("Неправильно задана оценка [%s]", score));
 		Book commentedBook = getBook(book);
 		result = new Comment(commentedBook, (short)iScore, content, commentator);
-		commentRepostory.insert(result);
+		commentRepostory.save(result);
 		return result;
 	}
 	
@@ -393,8 +400,40 @@ public class BookcardService {
 		return new ArrayList<>(commentedBook.getComments());
 	}
 	
+	private BooleanBuilder commentBuilder(HashMap<String, String> filters) {
+		
+		QComment qComment = QComment.comment;
+
+		BooleanBuilder builder = new BooleanBuilder();
+		
+		if (filters.get("commentator")!= null && !filters.get("commentator").isEmpty()) {	
+			builder.and(qComment.commentator.toLowerCase().like("%"+filters.get("commentator").toLowerCase()+"%"));
+		}
+		if (filters.get("book")!= null && !filters.get("book").isEmpty()) {
+			builder.and(qComment.book.name.toLowerCase().like("%"+filters.get("book").toLowerCase()+"%"));
+		}
+		if (filters.get("author")!= null && !filters.get("author").isEmpty()) {
+			String author = "%"+filters.get("author").toLowerCase()+"%";		
+			builder.and(qComment.book.authors.any().firstname.toLowerCase().like(author)
+				    .or(qComment.book.authors.any().surname.toLowerCase().like(author))
+				    .or(qComment.book.authors.any().middlename.toLowerCase().like(author)));
+		}
+		if (filters.get("book_id")!= null && !filters.get("book_id").isEmpty()) {	
+			int book_id = getInt(filters.get("book_id"));
+			if (book_id!=-1)
+				builder.and(qComment.book.id.eq(book_id));
+		}		
+		if (filters.get("author_id")!= null && !filters.get("author_id").isEmpty()) {
+			int author_id = getInt(filters.get("author_id"));
+			if (author_id!=-1) 
+				builder.and(qComment.book.authors.any().id.eq(author_id));
+		}		
+		
+		return builder;
+	}
+	
 	@Transactional 
-	public List<Comment> getCommentAll(HashMap<String, String> filters) {
+	public void getCommentAll(HashMap<String, String> filters) {
 		HashMap<String, String> newFilters = new HashMap<>();
 		if (filters.get("book")!= null && !filters.get("book").isEmpty()) {
 			try {
@@ -414,8 +453,22 @@ public class BookcardService {
 		}
 		if (filters.get("commentator")!= null && !filters.get("commentator").isEmpty()) {
 			newFilters.put("commentator", filters.get("commentator"));
-		}   				
-		return commentRepostory.getAll(newFilters);
+		}   	
+		
+		commentRepostory.findAll(commentBuilder(newFilters));
+		
+		/*QComment qComment = QComment.comment;
+		
+		Order[] orders = new Order[1];
+		orders[0] = qComment.book.name.asc().;
+
+		Sort sort = new Sort();
+
+	
+		
+		fetcher.print(commentRepostory::findAll, 
+					  commentBuilder(newFilters), 
+					  qComment.book.name.asc());*/
 	}	
 	
 }

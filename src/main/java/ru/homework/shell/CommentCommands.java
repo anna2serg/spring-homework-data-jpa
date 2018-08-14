@@ -47,7 +47,7 @@ public class CommentCommands {
     		filters.put("author", author);    	
     	if (commentator != null && !commentator.isEmpty()) 
     		filters.put("commentator", commentator);   	
-    	fetcher.output(service.getCommentAll(filters));
+    	service.getCommentAll(filters);
     }
 	
     @ShellMethod(value = "добавить комментарий к книге")

@@ -1,14 +1,10 @@
 package ru.homework.repository;
 
-import java.util.HashMap;
-import java.util.List;
+import org.springframework.data.querydsl.QuerydslPredicateExecutor;
+import org.springframework.data.repository.PagingAndSortingRepository;
 
 import ru.homework.domain.Comment;
 
-public interface CommentRepository {
+public interface CommentRepository extends PagingAndSortingRepository<Comment, Integer>, QuerydslPredicateExecutor<Comment> {
 	
-	int count();
-	int insert(Comment comment);
-	Comment getById(int id);
-	List<Comment> getAll(HashMap<String, String> filters);
 }

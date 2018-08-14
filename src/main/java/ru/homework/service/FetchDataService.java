@@ -42,7 +42,7 @@ public class FetchDataService {
 	}
 	
 	public <T> void print(BiFunction<BooleanBuilder, Pageable, Page<T>> funcRef, BooleanBuilder builder,  Sort sort) {
-    	String userInput = "";
+		String userInput = "";
     	Pageable pageable = PageRequest.of(0, settings.getFetchsize(), sort);
 		while(true){
 			Page<T> page = funcRef.apply(builder, pageable);    
