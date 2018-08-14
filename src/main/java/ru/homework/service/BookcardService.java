@@ -16,7 +16,9 @@ import ru.homework.domain.Author;
 import ru.homework.domain.Book;
 import ru.homework.domain.Comment;
 import ru.homework.domain.Genre;
+import ru.homework.domain.QAuthor;
 import ru.homework.domain.QBook;
+import ru.homework.domain.QGenre;
 import ru.homework.exception.EntityNotFoundException;
 import ru.homework.exception.InvalidOperationException;
 import ru.homework.exception.InvalidValueFormatException;
@@ -68,10 +70,20 @@ public class BookcardService {
 		return result;
 	}	
 
-	public List<Genre> getGenreAll(String name) {
-    	if (name != null && !name.isEmpty()) 
-    	return genreRepostory.findByNameLike("%" + name.toLowerCase() + "%");		
-    	else return genreRepostory.findAll();
+	private BooleanBuilder genreBuilder(String name) {
+		
+		QGenre qGenre = QGenre.genre; 
+		BooleanBuilder builder = new BooleanBuilder();
+		
+		if (name!= null && !name.isEmpty()) {	
+			builder.and(qGenre.name.toLowerCase().like("%"+name.toLowerCase()+"%"));
+		}	
+		
+		return builder;
+	}	
+	
+	public void getGenreAll(String name) {
+		fetcher.print(genreRepostory::findAll, genreBuilder(name), Sort.by("name").descending());
 	}	
 	
 	@Transactional 
@@ -132,11 +144,24 @@ public class BookcardService {
 			throw new EntityNotFoundException(String.format("Автор [%s] не найден", author));
 		return result;
 	}		
+		
+	private BooleanBuilder authorBuilder(String name) {
+		
+		QAuthor qAuthor = QAuthor.author;
+		BooleanBuilder builder = new BooleanBuilder();
+				
+		if (name!= null && !name.isEmpty()) {	
+			String author = "%"+name.toLowerCase()+"%";		
+			builder.and(qAuthor.firstname.toLowerCase().like(author)
+				    .or(qAuthor.surname.toLowerCase().like(author))
+				    .or(qAuthor.middlename.toLowerCase().like(author)));
+		}	
+		
+		return builder;
+	}		
 	
-	public List<Author> getAuthorAll(String name) {
-		if (name != null && !name.isEmpty()) 
-		return authorRepostory.findByNameLike(name);		
-		else return authorRepostory.findAll();
+	public void getAuthorAll(String name) {
+		fetcher.print(authorRepostory::findAll, authorBuilder(name), Sort.by("surname").ascending().and(Sort.by("firstname").ascending()));  		
 	}		
 	
 	@Transactional 
@@ -199,7 +224,7 @@ public class BookcardService {
 	}
 	
 	public void getBookAll(HashMap<String, String> filters) {
-		fetcher.print(bookRepostory::findAll,bookBuilder(filters), Sort.by("name").descending());
+		fetcher.print(bookRepostory::findAll,bookBuilder(filters), Sort.by("name").ascending());
 	}	
 	
 	public Book getBook(String book) throws EntityNotFoundException, NotUniqueEntityFoundException {		

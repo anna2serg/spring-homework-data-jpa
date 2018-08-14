@@ -8,24 +8,21 @@ import org.springframework.shell.standard.ShellOption;
 import ru.homework.exception.EntityNotFoundException;
 import ru.homework.exception.InvalidOperationException;
 import ru.homework.service.BookcardService;
-import ru.homework.service.FetchDataService;
 
 @ShellComponent
 public class GenreCommands {
 	
 	private final BookcardService service;
-	private final FetchDataService fetcher;
 	
 	@Autowired
-    public GenreCommands(BookcardService service, FetchDataService fetcher) {
+    public GenreCommands(BookcardService service) {
 		this.service = service;
-		this.fetcher = fetcher;
 	}
 
     @ShellMethod(value = "показать информацию обо всех жанрах")
     public void getGenreAll(
     		@ShellOption(help="фильтр по наименованию жанра", defaultValue=ShellOption.NULL) String name) {
-    	fetcher.output(service.getGenreAll(name));
+    	service.getGenreAll(name);
     }
     
     @ShellMethod(value = "показать информацию о жанре")

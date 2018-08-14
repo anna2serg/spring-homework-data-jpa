@@ -12,24 +12,21 @@ import ru.homework.exception.EntityNotFoundException;
 import ru.homework.exception.InvalidOperationException;
 import ru.homework.exception.NotUniqueEntityFoundException;
 import ru.homework.service.BookcardService;
-import ru.homework.service.FetchDataService;
 
 @ShellComponent
 public class AuthorCommands {
 	
 	private final BookcardService service;
-	private final FetchDataService fetcher;
 	
 	@Autowired
-    public AuthorCommands(BookcardService service, FetchDataService fetcher) {
+    public AuthorCommands(BookcardService service) {
 		this.service = service;
-		this.fetcher = fetcher;
 	}
 	
     @ShellMethod(value = "показать информацию обо всех авторах")
     public void getAuthorAll(
     		@ShellOption(help="фильтр по фамилии, имени или отчеству", defaultValue="") String name) {	
-    	fetcher.output(service.getAuthorAll(name));
+    	service.getAuthorAll(name);
     }
     
     @ShellMethod(value = "показать информацию об авторе")
