@@ -6,9 +6,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,7 +34,7 @@ public class BookcardService {
 	private final AuthorRepository authorRepostory;
 	private final CommentRepository commentRepostory;
 	private final FetchDataService fetcher;
-
+	
 	public BookcardService(AuthorRepository authorRepostory, BookRepository bookRepostory, GenreRepository genreRepostory, CommentRepository commentRepostory, FetchDataService fetcher) {
 		this.authorRepostory = authorRepostory;
 		this.bookRepostory = bookRepostory;
@@ -55,18 +52,7 @@ public class BookcardService {
 	    } 
 		return result;
 	}
-	
-	public <T> void output(Page<T> page, Sort sort) {
-		while(true){
-            System.out.println("Страница " + page.getNumber() + " из " + page.getTotalPages()); 
-            page.getContent().forEach(System.out::println);
-            if(!page.hasNext()){
-                break;
-            }
-            Pageable pageable = page.nextPageable();
-        }	
-	}		
-	
+
 	public Genre getGenre(String genre) throws EntityNotFoundException {
 		Genre result = null;
 		int genre_id = getInt(genre);		
@@ -175,9 +161,8 @@ public class BookcardService {
 		return result;		
 	}		
 	
-	public List<Book> getBookAll(HashMap<String, String> filters) {
+	private BooleanBuilder bookBuilder(HashMap<String, String> filters) {
 		
-		List<Book> result = new ArrayList<>();
 		QBook gBook = QBook.book;
 		BooleanBuilder builder = new BooleanBuilder();
 		
@@ -202,23 +187,19 @@ public class BookcardService {
 			int genre_id = getInt(filters.get("genre_id"));
 			if (genre_id!=-1)
 				builder.and(gBook.genre.id.eq(genre_id));
-		}			
+		}		
 		
-		Pageable pageable = PageRequest.of(0, 3, Sort.by("name").descending());
-		output(bookRepostory.findAll(builder, pageable), Sort.by("name").descending()); 
-		
-		/*while(true){
-            Page<Book> page = bookRepostory.findAll(builder, pageable);	
-            System.out.println("Страница " + page.getNumber() + " из " + page.getTotalPages()); 
-            page.getContent().forEach(System.out::println);
-            if(!page.hasNext()){
-                break;
-            }
-            pageable = page.nextPageable();
-        }*/	
-		
-		return result;
-
+		return builder;
+	}
+	
+	public int getBookCount(HashMap<String, String> filters) {
+		List<Book> result = new ArrayList<>();
+		bookRepostory.findAll(bookBuilder(filters)).forEach(result::add);
+		return result.size();
+	}
+	
+	public void getBookAll(HashMap<String, String> filters) {
+		fetcher.print(bookRepostory::findAll,bookBuilder(filters), Sort.by("name").descending());
 	}	
 	
 	public Book getBook(String book) throws EntityNotFoundException, NotUniqueEntityFoundException {		
@@ -347,8 +328,8 @@ public class BookcardService {
 		Genre exGenre = getGenre(genre);
     	HashMap<String, String> filters = new HashMap<>();
     	filters.put("genre_id", String.valueOf(exGenre.getId()));  
-		List<Book> bookByGenre = getBookAll(filters);
-		if ((bookByGenre != null) && (bookByGenre.size()>0)) 
+		int bookByGenreCount = getBookCount(filters);
+		if (bookByGenreCount>0)
 			throw new InvalidOperationException("Недопустимая операция: жанр используется");
 		genreRepostory.delete(exGenre);
 		result = true;
@@ -361,8 +342,8 @@ public class BookcardService {
 		Author exAuthor = getAuthor(author);
     	HashMap<String, String> filters = new HashMap<>();
     	filters.put("author_id", String.valueOf(exAuthor.getId()));  
-		List<Book> bookByAuthor = getBookAll(filters);
-		if ((bookByAuthor != null) && (bookByAuthor.size()>0)) 
+		int bookByAuthorCount = getBookCount(filters);
+		if (bookByAuthorCount>0) 
 			throw new InvalidOperationException("Недопустимая операция: автор используется");
 		authorRepostory.delete(exAuthor);
 		result = true;
