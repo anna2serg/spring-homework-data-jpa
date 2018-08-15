@@ -56,7 +56,8 @@ public class GenreCommands {
     public void deleteGenre(
     		@ShellOption(help="ИД или текущее наименование")String genre) {  
     	try {
-    		if (service.deleteGenre(genre)) System.out.println("OK");
+    		service.deleteGenre(genre);
+    		System.out.println("OK");
 		} catch (EntityNotFoundException | InvalidOperationException e) {
 			System.out.println(e.getMessage());
 		}

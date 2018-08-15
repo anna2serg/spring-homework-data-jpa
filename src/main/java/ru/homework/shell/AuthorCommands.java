@@ -75,7 +75,8 @@ public class AuthorCommands {
     public void deleteAuthor(
     		@ShellOption(help="ИД или ФИО автора в формате \"Салтыков-Щедрин, Михаил, Евграфович\"") String author) {   	
         try {
-        	if (service.deleteAuthor(author)) System.out.println("OK");      	
+        	service.deleteAuthor(author);
+        	System.out.println("OK");      	
 		} catch (EntityNotFoundException | NotUniqueEntityFoundException | InvalidOperationException e) {
 			System.out.println(e.getMessage());
 		}

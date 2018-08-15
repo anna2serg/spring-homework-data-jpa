@@ -11,29 +11,16 @@ import ru.homework.exception.EntityNotFoundException;
 import ru.homework.exception.InvalidValueFormatException;
 import ru.homework.exception.NotUniqueEntityFoundException;
 import ru.homework.service.BookcardService;
-import ru.homework.service.FetchDataService;
 
 @ShellComponent
 public class CommentCommands {
 	
 	private final BookcardService service;
-	private final FetchDataService fetcher;
 	
 	@Autowired
-    public CommentCommands(BookcardService service, FetchDataService fetcher) {
+    public CommentCommands(BookcardService service) {
 		this.service = service;		
-		this.fetcher = fetcher;
-	}	
-	
-    @ShellMethod(value = "показать комментарии к книге")
-    public void getComments(
-    		@ShellOption(help="ИД или наименование книги") String book) {   	
-        try {
-        	fetcher.output(service.getComments(book));       	
-		} catch (EntityNotFoundException | NotUniqueEntityFoundException e) {
-			System.out.println(e.getMessage());
-		}
-    }    	
+	}	  	
 	
     @ShellMethod(value = "показать комментарии")
     public void getCommentAll(

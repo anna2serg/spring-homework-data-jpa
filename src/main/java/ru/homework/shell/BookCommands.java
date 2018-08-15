@@ -97,7 +97,8 @@ public class BookCommands {
     public void deleteBook(
     		@ShellOption(help="ИД или наименование") String book) {   
         try {
-        	if (service.deleteBook(book)) System.out.println("OK");   	
+        	service.deleteBook(book);
+        	System.out.println("OK");   	
 		} catch (EntityNotFoundException | NotUniqueEntityFoundException e) {
 			System.out.println(e.getMessage());
 		}

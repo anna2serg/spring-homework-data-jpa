@@ -346,17 +346,13 @@ public class BookcardService {
 	}
 	
 	@Transactional 
-	public boolean deleteBook(String book) throws EntityNotFoundException, NotUniqueEntityFoundException {
-		boolean result = false;
+	public void deleteBook(String book) throws EntityNotFoundException, NotUniqueEntityFoundException {
 		Book bookToDelete = getBook(book);
 		bookRepostory.delete(bookToDelete);
-		result = true;
-		return result;
 	}
 	
 	@Transactional 
-	public boolean deleteGenre(String genre) throws EntityNotFoundException, InvalidOperationException {
-		boolean result = false;
+	public void deleteGenre(String genre) throws EntityNotFoundException, InvalidOperationException {
 		Genre exGenre = getGenre(genre);
     	HashMap<String, String> filters = new HashMap<>();
     	filters.put("genre_id", String.valueOf(exGenre.getId()));  
@@ -364,13 +360,10 @@ public class BookcardService {
 		if (bookByGenreCount>0)
 			throw new InvalidOperationException("Недопустимая операция: жанр используется");
 		genreRepostory.delete(exGenre);
-		result = true;
-		return result;
 	}	
 	
 	@Transactional 
-	public boolean deleteAuthor(String author) throws EntityNotFoundException, InvalidOperationException, NotUniqueEntityFoundException {
-		boolean result = false;
+	public void deleteAuthor(String author) throws EntityNotFoundException, InvalidOperationException, NotUniqueEntityFoundException {
 		Author exAuthor = getAuthor(author);
     	HashMap<String, String> filters = new HashMap<>();
     	filters.put("author_id", String.valueOf(exAuthor.getId()));  
@@ -378,8 +371,6 @@ public class BookcardService {
 		if (bookByAuthorCount>0) 
 			throw new InvalidOperationException("Недопустимая операция: автор используется");
 		authorRepostory.delete(exAuthor);
-		result = true;
-		return result;
 	}	
 	
 	@Transactional 
@@ -392,12 +383,6 @@ public class BookcardService {
 		result = new Comment(commentedBook, (short)iScore, content, commentator);
 		commentRepostory.save(result);
 		return result;
-	}
-	
-	@Transactional 
-	public List<Comment> getComments(String book) throws EntityNotFoundException, NotUniqueEntityFoundException {
-		Book commentedBook = getBook(book);
-		return new ArrayList<>(commentedBook.getComments());
 	}
 	
 	private BooleanBuilder commentBuilder(HashMap<String, String> filters) {
@@ -455,20 +440,10 @@ public class BookcardService {
 			newFilters.put("commentator", filters.get("commentator"));
 		}   	
 		
-		commentRepostory.findAll(commentBuilder(newFilters));
-		
-		/*QComment qComment = QComment.comment;
-		
-		Order[] orders = new Order[1];
-		orders[0] = qComment.book.name.asc().;
-
-		Sort sort = new Sort();
-
-	
-		
 		fetcher.print(commentRepostory::findAll, 
 					  commentBuilder(newFilters), 
-					  qComment.book.name.asc());*/
+					  Sort.by("book_id").descending().and(Sort.by("id").ascending()));
+		
 	}	
 	
 }
