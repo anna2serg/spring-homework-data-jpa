@@ -148,13 +148,7 @@ public class Book {
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((authors == null) ? 0 : authors.hashCode());
-		result = prime * result + ((genre == null) ? 0 : genre.hashCode());
-		result = prime * result + id;
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		return result;
+		return java.util.Objects.hash(getId(), getName(), getGenre(), getAuthors());
 	}
 
 	@Override
@@ -170,11 +164,7 @@ public class Book {
         return (Objects.equals(other.id, this.id)) && 
         	   (Objects.equals(other.name, this.name)) && 
 			   (Objects.equals(other.genre, this.genre)) &&
-			   (Objects.equals(other.authors, this.authors))
-			   //(other.authors.size() == this.authors.size() &&
-			   //(other.authors.containsAll(this.authors)) &&
-			   //(this.authors.containsAll(other.authors)))
-			   ;    
+			   (Objects.equals(other.authors, this.authors));    
     }  
     
 }

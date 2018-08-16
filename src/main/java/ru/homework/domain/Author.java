@@ -91,13 +91,7 @@ public class Author {
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((firstname == null) ? 0 : firstname.hashCode());
-		result = prime * result + id;
-		result = prime * result + ((middlename == null) ? 0 : middlename.hashCode());
-		result = prime * result + ((surname == null) ? 0 : surname.hashCode());
-		return result;
+		return java.util.Objects.hash(getId(), getSurname(), getFirstname(), getMiddlename());
 	}
    
     @Override

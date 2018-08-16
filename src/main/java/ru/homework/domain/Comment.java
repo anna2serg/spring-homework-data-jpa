@@ -109,14 +109,7 @@ public class Comment {
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((book == null) ? 0 : book.hashCode());
-		result = prime * result + ((commentator == null) ? 0 : commentator.hashCode());
-		result = prime * result + ((content == null) ? 0 : content.hashCode());
-		result = prime * result + id;
-		result = prime * result + score;
-		return result;
+		return java.util.Objects.hash(getId(), getBook(), getCommentator(), getContent(), getScore());
 	}
 
 	@Override

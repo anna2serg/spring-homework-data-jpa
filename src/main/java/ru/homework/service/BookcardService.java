@@ -32,17 +32,17 @@ import ru.homework.repository.GenreRepository;
 @Service
 public class BookcardService {
 	
-	private final BookRepository bookRepostory;
-	private final GenreRepository genreRepostory;
-	private final AuthorRepository authorRepostory;
-	private final CommentRepository commentRepostory;
+	private final BookRepository bookRepository;
+	private final GenreRepository genreRepository;
+	private final AuthorRepository authorRepository;
+	private final CommentRepository commentRepository;
 	private final FetchDataService fetcher;
 	
 	public BookcardService(AuthorRepository authorRepostory, BookRepository bookRepostory, GenreRepository genreRepostory, CommentRepository commentRepostory, FetchDataService fetcher) {
-		this.authorRepostory = authorRepostory;
-		this.bookRepostory = bookRepostory;
-		this.genreRepostory = genreRepostory;
-		this.commentRepostory = commentRepostory;
+		this.authorRepository = authorRepostory;
+		this.bookRepository = bookRepostory;
+		this.genreRepository = genreRepostory;
+		this.commentRepository = commentRepostory;
 		this.fetcher = fetcher;
 	}
 
@@ -61,10 +61,10 @@ public class BookcardService {
 		int genre_id = getInt(genre);		
 		if (genre_id == -1) {
 			//genre - строка
-			result = genreRepostory.findByName(genre).orElse(null);				
+			result = genreRepository.findByName(genre).orElse(null);				
 		} else {
 			//genre - число 
-			result = genreRepostory.findById(genre_id).orElse(null); 
+			result = genreRepository.findById(genre_id).orElse(null); 
 		}		
 		if (result == null) 
 			throw new EntityNotFoundException(String.format("Жанр [%s] не найден", genre));		
@@ -84,7 +84,7 @@ public class BookcardService {
 	}	
 	
 	public void getGenreAll(String name) {
-		fetcher.print(genreRepostory::findAll,
+		fetcher.print(genreRepository::findAll,
 					  genreBuilder(name), 
 					  Sort.by("name").descending());
 	}	
@@ -93,7 +93,7 @@ public class BookcardService {
 	public Genre addGenre(String name) {
 		Genre result = null;
 		result = new Genre(name);
-		genreRepostory.save(result);
+		genreRepository.save(result);
 		return result;
 	}
 	
@@ -101,7 +101,7 @@ public class BookcardService {
 	public Genre editGenre(String genre, String name) throws EntityNotFoundException {
 		Genre result = getGenre(genre);
 		result.setName(name);
-		genreRepostory.save(result);
+		genreRepository.save(result);
 		return result;
 	}	
 	
@@ -134,10 +134,10 @@ public class BookcardService {
 			} catch (InvalidValueFormatException e) {
 				throw new EntityNotFoundException(String.format("Автор [%s] не найден: %s", author, e.getMessage()));
 			}
-			result = authorRepostory.findBySurnameAndFirstnameAndMiddlename(names.get(0), names.get(1), (names.size() > 2) ? names.get(2) : null);			
+			result = authorRepository.findBySurnameAndFirstnameAndMiddlename(names.get(0), names.get(1), (names.size() > 2) ? names.get(2) : null);			
 		} else {
 			//author - число 
-			Author authorById = authorRepostory.findById(author_id).orElse(null);
+			Author authorById = authorRepository.findById(author_id).orElse(null);
 			if (authorById!=null) {
 				result = new ArrayList<Author>();
 				result.add(authorById);				
@@ -164,7 +164,7 @@ public class BookcardService {
 	}		
 	
 	public void getAuthorAll(String name) {
-		fetcher.print(authorRepostory::findAll, 
+		fetcher.print(authorRepository::findAll, 
 					  authorBuilder(name), 
 					  Sort.by("surname").ascending().and(Sort.by("firstname").ascending()));  		
 	}		
@@ -173,7 +173,7 @@ public class BookcardService {
 	public Author addAuthor(String surname, String firstname, String middlename) {
 		Author result = null;
 		result = new Author(surname, firstname, middlename);
-		authorRepostory.save(result);
+		authorRepository.save(result);
 		return result;		
 	}	
 	
@@ -187,7 +187,7 @@ public class BookcardService {
 		if (values.get("middlename")!=null)
 			if (values.get("middlename").equals("null")) result.setMiddlename(null); 
 			else result.setMiddlename(values.get("middlename"));		
-		authorRepostory.save(result);
+		authorRepository.save(result);
 		return result;		
 	}		
 	
@@ -224,12 +224,12 @@ public class BookcardService {
 	
 	public int getBookCount(HashMap<String, String> filters) {
 		List<Book> result = new ArrayList<>();
-		bookRepostory.findAll(bookBuilder(filters)).forEach(result::add);
+		bookRepository.findAll(bookBuilder(filters)).forEach(result::add);
 		return result.size();
 	}
 	
 	public void getBookAll(HashMap<String, String> filters) {
-		fetcher.print(bookRepostory::findAll,
+		fetcher.print(bookRepository::findAll,
 					  bookBuilder(filters), 
 					  Sort.by("name").ascending());
 	}	
@@ -246,10 +246,10 @@ public class BookcardService {
 		int book_id = getInt(book);
 		if (book_id == -1) {
 			//book - строка
-			result = bookRepostory.findByName(book);
+			result = bookRepository.findByName(book);
 		} else {
 			//book - число 
-			Book bookById = bookRepostory.findById(book_id).orElse(null); 
+			Book bookById = bookRepository.findById(book_id).orElse(null); 
 			if (bookById!=null) {
 				result = new ArrayList<Book>();
 				result.add(bookById);				
@@ -303,7 +303,7 @@ public class BookcardService {
 		authors.add(book_author);
 		
 		result = new Book(name, authors, book_genre);
-		bookRepostory.save(result);
+		bookRepository.save(result);
 		return result;
 	}	
 	
@@ -340,7 +340,7 @@ public class BookcardService {
 			}				
 		}
 
-		bookRepostory.save(result);		
+		bookRepository.save(result);		
 		
 		return result;
 	}
@@ -348,7 +348,7 @@ public class BookcardService {
 	@Transactional 
 	public void deleteBook(String book) throws EntityNotFoundException, NotUniqueEntityFoundException {
 		Book bookToDelete = getBook(book);
-		bookRepostory.delete(bookToDelete);
+		bookRepository.delete(bookToDelete);
 	}
 	
 	@Transactional 
@@ -359,7 +359,7 @@ public class BookcardService {
 		int bookByGenreCount = getBookCount(filters);
 		if (bookByGenreCount>0)
 			throw new InvalidOperationException("Недопустимая операция: жанр используется");
-		genreRepostory.delete(exGenre);
+		genreRepository.delete(exGenre);
 	}	
 	
 	@Transactional 
@@ -370,7 +370,7 @@ public class BookcardService {
 		int bookByAuthorCount = getBookCount(filters);
 		if (bookByAuthorCount>0) 
 			throw new InvalidOperationException("Недопустимая операция: автор используется");
-		authorRepostory.delete(exAuthor);
+		authorRepository.delete(exAuthor);
 	}	
 	
 	@Transactional 
@@ -381,7 +381,7 @@ public class BookcardService {
 			throw new InvalidValueFormatException(String.format("Неправильно задана оценка [%s]", score));
 		Book commentedBook = getBook(book);
 		result = new Comment(commentedBook, (short)iScore, content, commentator);
-		commentRepostory.save(result);
+		commentRepository.save(result);
 		return result;
 	}
 	
@@ -440,7 +440,7 @@ public class BookcardService {
 			newFilters.put("commentator", filters.get("commentator"));
 		}   	
 		
-		fetcher.print(commentRepostory::findAll, 
+		fetcher.print(commentRepository::findAll, 
 					  commentBuilder(newFilters), 
 					  Sort.by("book_id").descending().and(Sort.by("id").ascending()));
 		
