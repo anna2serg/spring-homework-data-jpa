@@ -14,7 +14,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
-import ru.homework.helper.StringHelper;
+import ru.homework.helper.Helper;
 
 @Entity
 @Table(name = "comments")
@@ -97,13 +97,13 @@ public class Comment {
     	String result = "";
     	result += String.format("%-10s", this.id);
     	result += "| ";     	
-    	result += String.format("%-25s", StringHelper.ellipsize(this.commentator, 25));
+    	result += String.format("%-25s", Helper.ellipsize(this.commentator, 25));
     	result += "| "; 
     	result += String.format("%-3s", this.getScore());
     	result += "| "; 
-    	result += String.format("%-50s", StringHelper.ellipsize(this.content, 50));
+    	result += String.format("%-50s", Helper.ellipsize(this.content, 50));
     	result += "| ";     	
-    	result += String.format("%-50s", StringHelper.ellipsize(this.book.toString(), 50));
+    	result += String.format("%-50s", Helper.ellipsize(this.book.toString(), 50));
 		return result;
     }
 

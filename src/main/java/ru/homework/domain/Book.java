@@ -20,8 +20,7 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import ru.homework.helper.StringHelper;
-
+import ru.homework.helper.Helper;
 @Entity
 @Table(name = "books")
 public class Book {
@@ -119,10 +118,10 @@ public class Book {
     public String toString() {
     	String result = "";
     	String book_name = String.format("[%s] %s", id, name);
-    	book_name = StringHelper.ellipsize(book_name, 50);
+    	book_name = Helper.ellipsize(book_name, 50);
     	result += String.format("%-50s", book_name);
     	result += "| "; 
-    	String book_genre = StringHelper.ellipsize(genre.toString(), 25);
+    	String book_genre = Helper.ellipsize(genre.toString(), 25);
     	result += String.format("%-25s", book_genre);
     	result += "| ";
     	boolean isFirstAuthor = true;

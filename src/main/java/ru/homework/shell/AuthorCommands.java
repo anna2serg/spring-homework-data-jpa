@@ -26,7 +26,10 @@ public class AuthorCommands {
     @ShellMethod(value = "показать информацию обо всех авторах")
     public void getAuthorAll(
     		@ShellOption(help="фильтр по фамилии, имени или отчеству", defaultValue="") String name) {	
-    	service.getAuthorAll(name);
+    	HashMap<String, String> filters = new HashMap<>();
+    	if (name != null && !name.isEmpty()) 
+    		filters.put("name", name);    	
+    	service.getAuthorAll(filters);
     }
     
     @ShellMethod(value = "показать информацию об авторе")

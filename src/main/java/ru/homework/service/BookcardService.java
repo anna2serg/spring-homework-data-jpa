@@ -10,20 +10,15 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.querydsl.core.BooleanBuilder;
-
 import ru.homework.domain.Author;
 import ru.homework.domain.Book;
 import ru.homework.domain.Comment;
 import ru.homework.domain.Genre;
-import ru.homework.domain.QAuthor;
-import ru.homework.domain.QBook;
-import ru.homework.domain.QComment;
-import ru.homework.domain.QGenre;
 import ru.homework.exception.EntityNotFoundException;
 import ru.homework.exception.InvalidOperationException;
 import ru.homework.exception.InvalidValueFormatException;
 import ru.homework.exception.NotUniqueEntityFoundException;
+import ru.homework.helper.Helper;
 import ru.homework.repository.AuthorRepository;
 import ru.homework.repository.BookRepository;
 import ru.homework.repository.CommentRepository;
@@ -46,19 +41,9 @@ public class BookcardService {
 		this.fetcher = fetcher;
 	}
 
-	private int getInt(String id) {
-		int result = -1;
-		try {  
-			result = Integer.parseInt(id);
-	    } catch (NumberFormatException e) {  
-	    	// 
-	    } 
-		return result;
-	}
-
 	public Genre getGenre(String genre) throws EntityNotFoundException {
 		Genre result = null;
-		int genre_id = getInt(genre);		
+		int genre_id = Helper.getInt(genre);		
 		if (genre_id == -1) {
 			//genre - строка
 			result = genreRepository.findByName(genre).orElse(null);				
@@ -71,22 +56,10 @@ public class BookcardService {
 		return result;
 	}	
 
-	private BooleanBuilder genreBuilder(String name) {
-		
-		QGenre qGenre = QGenre.genre; 
-		BooleanBuilder builder = new BooleanBuilder();
-		
-		if (name!= null && !name.isEmpty()) {	
-			builder.and(qGenre.name.toLowerCase().like("%"+name.toLowerCase()+"%"));
-		}	
-		
-		return builder;
-	}	
-	
-	public void getGenreAll(String name) {
-		fetcher.print(genreRepository::findAll,
-					  genreBuilder(name), 
-					  Sort.by("name").descending());
+	public void getGenreAll(HashMap<String, String> filters) {
+		fetcher.print(genreRepository::findAllByFilters, 
+					  filters, 
+					  Sort.by("name").ascending());
 	}	
 	
 	@Transactional 
@@ -125,7 +98,7 @@ public class BookcardService {
 	
 	public List<Author> getAuthors(String author) throws EntityNotFoundException {
 		List<Author> result = null;
-		int author_id = getInt(author);
+		int author_id = Helper.getInt(author);
 		if (author_id == -1) {
 			//author - строка
 			List<String> names;
@@ -148,24 +121,9 @@ public class BookcardService {
 		return result;
 	}		
 		
-	private BooleanBuilder authorBuilder(String name) {
-		
-		QAuthor qAuthor = QAuthor.author;
-		BooleanBuilder builder = new BooleanBuilder();
-				
-		if (name!= null && !name.isEmpty()) {	
-			String author = "%"+name.toLowerCase()+"%";		
-			builder.and(qAuthor.firstname.toLowerCase().like(author)
-				    .or(qAuthor.surname.toLowerCase().like(author))
-				    .or(qAuthor.middlename.toLowerCase().like(author)));
-		}	
-		
-		return builder;
-	}		
-	
-	public void getAuthorAll(String name) {
-		fetcher.print(authorRepository::findAll, 
-					  authorBuilder(name), 
+	public void getAuthorAll(HashMap<String, String> filters) {
+		fetcher.print(authorRepository::findAllByFilters, 
+					  filters, 
 					  Sort.by("surname").ascending().and(Sort.by("firstname").ascending()));  		
 	}		
 	
@@ -191,46 +149,9 @@ public class BookcardService {
 		return result;		
 	}		
 	
-	private BooleanBuilder bookBuilder(HashMap<String, String> filters) {
-		
-		QBook gBook = QBook.book;
-		BooleanBuilder builder = new BooleanBuilder();
-		
-		if (filters.get("name")!= null && !filters.get("name").isEmpty()) {	
-			builder.and(gBook.name.toLowerCase().like("%"+filters.get("name").toLowerCase()+"%"));
-		}
-		if (filters.get("author")!= null && !filters.get("author").isEmpty()) {
-			String author = "%"+filters.get("author").toLowerCase()+"%";		
-			builder.and(gBook.authors.any().firstname.toLowerCase().like(author)
-				    .or(gBook.authors.any().surname.toLowerCase().like(author))
-				    .or(gBook.authors.any().middlename.toLowerCase().like(author)));
-		}
-		if (filters.get("genre")!= null && !filters.get("genre").isEmpty()) {	
-			builder.and(gBook.genre.name.toLowerCase().like("%"+filters.get("genre").toLowerCase()+"%"));
-		}	
-		if (filters.get("author_id")!= null && !filters.get("author_id").isEmpty()) {
-			int author_id = getInt(filters.get("author_id"));
-			if (author_id!=-1) 
-				builder.and(gBook.authors.any().id.eq(author_id));
-		}	
-		if (filters.get("genre_id")!= null && !filters.get("genre_id").isEmpty()) {	
-			int genre_id = getInt(filters.get("genre_id"));
-			if (genre_id!=-1)
-				builder.and(gBook.genre.id.eq(genre_id));
-		}		
-		
-		return builder;
-	}
-	
-	public int getBookCount(HashMap<String, String> filters) {
-		List<Book> result = new ArrayList<>();
-		bookRepository.findAll(bookBuilder(filters)).forEach(result::add);
-		return result.size();
-	}
-	
 	public void getBookAll(HashMap<String, String> filters) {
-		fetcher.print(bookRepository::findAll,
-					  bookBuilder(filters), 
+		fetcher.print(bookRepository::findAllByFilters, 
+					  filters, 
 					  Sort.by("name").ascending());
 	}	
 	
@@ -243,7 +164,7 @@ public class BookcardService {
 	
 	public List<Book> getBooks(String book) throws EntityNotFoundException {
 		List<Book> result = null;
-		int book_id = getInt(book);
+		int book_id = Helper.getInt(book);
 		if (book_id == -1) {
 			//book - строка
 			result = bookRepository.findByName(book);
@@ -266,7 +187,7 @@ public class BookcardService {
 		try {
 			result = getGenre(genre);
 		} catch (EntityNotFoundException e) {
-			if (getInt(genre)!=-1) throw e;
+			if (Helper.getInt(genre)!=-1) throw e;
 			else result = addGenre(genre);
 		}	
 		return result;
@@ -278,7 +199,7 @@ public class BookcardService {
 		try {
 			result = getAuthor(author);	
 		} catch (EntityNotFoundException e) {
-			if (getInt(author)!=-1) throw e;
+			if (Helper.getInt(author)!=-1) throw e;
 			else {
 				List<String> names;
 				try {
@@ -356,7 +277,7 @@ public class BookcardService {
 		Genre exGenre = getGenre(genre);
     	HashMap<String, String> filters = new HashMap<>();
     	filters.put("genre_id", String.valueOf(exGenre.getId()));  
-		int bookByGenreCount = getBookCount(filters);
+		int bookByGenreCount = bookRepository.getBookCount(filters);
 		if (bookByGenreCount>0)
 			throw new InvalidOperationException("Недопустимая операция: жанр используется");
 		genreRepository.delete(exGenre);
@@ -367,7 +288,7 @@ public class BookcardService {
 		Author exAuthor = getAuthor(author);
     	HashMap<String, String> filters = new HashMap<>();
     	filters.put("author_id", String.valueOf(exAuthor.getId()));  
-		int bookByAuthorCount = getBookCount(filters);
+		int bookByAuthorCount = bookRepository.getBookCount(filters);
 		if (bookByAuthorCount>0) 
 			throw new InvalidOperationException("Недопустимая операция: автор используется");
 		authorRepository.delete(exAuthor);
@@ -376,45 +297,13 @@ public class BookcardService {
 	@Transactional 
 	public Comment addComment(String book, String score, String content, String commentator) throws EntityNotFoundException, NotUniqueEntityFoundException, InvalidValueFormatException {
 		Comment result = null;
-		int iScore = getInt(score);
+		int iScore = Helper.getInt(score);
 		if ((iScore < 0) || (iScore >= 6)) 
 			throw new InvalidValueFormatException(String.format("Неправильно задана оценка [%s]", score));
 		Book commentedBook = getBook(book);
 		result = new Comment(commentedBook, (short)iScore, content, commentator);
 		commentRepository.save(result);
 		return result;
-	}
-	
-	private BooleanBuilder commentBuilder(HashMap<String, String> filters) {
-		
-		QComment qComment = QComment.comment;
-
-		BooleanBuilder builder = new BooleanBuilder();
-		
-		if (filters.get("commentator")!= null && !filters.get("commentator").isEmpty()) {	
-			builder.and(qComment.commentator.toLowerCase().like("%"+filters.get("commentator").toLowerCase()+"%"));
-		}
-		if (filters.get("book")!= null && !filters.get("book").isEmpty()) {
-			builder.and(qComment.book.name.toLowerCase().like("%"+filters.get("book").toLowerCase()+"%"));
-		}
-		if (filters.get("author")!= null && !filters.get("author").isEmpty()) {
-			String author = "%"+filters.get("author").toLowerCase()+"%";		
-			builder.and(qComment.book.authors.any().firstname.toLowerCase().like(author)
-				    .or(qComment.book.authors.any().surname.toLowerCase().like(author))
-				    .or(qComment.book.authors.any().middlename.toLowerCase().like(author)));
-		}
-		if (filters.get("book_id")!= null && !filters.get("book_id").isEmpty()) {	
-			int book_id = getInt(filters.get("book_id"));
-			if (book_id!=-1)
-				builder.and(qComment.book.id.eq(book_id));
-		}		
-		if (filters.get("author_id")!= null && !filters.get("author_id").isEmpty()) {
-			int author_id = getInt(filters.get("author_id"));
-			if (author_id!=-1) 
-				builder.and(qComment.book.authors.any().id.eq(author_id));
-		}		
-		
-		return builder;
 	}
 	
 	@Transactional 
@@ -440,8 +329,8 @@ public class BookcardService {
 			newFilters.put("commentator", filters.get("commentator"));
 		}   	
 		
-		fetcher.print(commentRepository::findAll, 
-					  commentBuilder(newFilters), 
+		fetcher.print(commentRepository::findAllByFilters, 
+					  newFilters, 
 					  Sort.by("book_id").descending().and(Sort.by("id").ascending()));
 		
 	}	

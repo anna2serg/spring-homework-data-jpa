@@ -1,8 +1,18 @@
 package ru.homework.helper;
 
-public class StringHelper {
+public class Helper {
 	private final static String NON_THIN = "[^iIl1\\.,']";
 
+	public static int getInt(String id) {
+		int result = -1;
+		try {  
+			result = Integer.parseInt(id);
+	    } catch (NumberFormatException e) {  
+	    	// 
+	    } 
+		return result;
+	}		
+	
 	private static int textWidth(String str) {
 	    return (int) (str.length() - str.replaceAll(NON_THIN, "").length() / 2);
 	}

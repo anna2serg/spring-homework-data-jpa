@@ -1,5 +1,6 @@
 package ru.homework.service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
 import java.util.function.BiFunction;
@@ -41,6 +42,25 @@ public class FetchDataService {
 		}		
 	}
 	
+	public <T> void print(BiFunction<HashMap<String, String>, Pageable, Page<T>> funcRef, HashMap<String, String> filters, Sort sort) {
+		String userInput = "";
+    	Pageable pageable = PageRequest.of(0, settings.getFetchsize(), sort);
+		while(true){
+			Page<T> page = funcRef.apply(filters, pageable);    
+            System.out.println("Страница " + (page.getNumber() + 1) + " из " + page.getTotalPages()); 
+            page.getContent().forEach(System.out::println);
+
+            if(!page.hasNext()){
+                break;
+            } else {
+    			System.out.println("Для продолжения вывода - нажмите Enter, для прерывания - введите любой символ, затем Enter");
+    			userInput = in.nextLine();
+    			if (!userInput.equals("")) break;                 	
+            }
+            pageable = page.nextPageable();
+        }
+	}		
+	
 	public <T> void print(BiFunction<BooleanBuilder, Pageable, Page<T>> funcRef, BooleanBuilder builder,  Sort sort) {
 		String userInput = "";
     	Pageable pageable = PageRequest.of(0, settings.getFetchsize(), sort);
@@ -58,6 +78,6 @@ public class FetchDataService {
             }
             pageable = page.nextPageable();
         }
-	}
+	}	
 	
 }

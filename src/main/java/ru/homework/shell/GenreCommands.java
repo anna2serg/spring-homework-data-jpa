@@ -1,5 +1,7 @@
 package ru.homework.shell;
 
+import java.util.HashMap;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
@@ -22,7 +24,10 @@ public class GenreCommands {
     @ShellMethod(value = "показать информацию обо всех жанрах")
     public void getGenreAll(
     		@ShellOption(help="фильтр по наименованию жанра", defaultValue=ShellOption.NULL) String name) {
-    	service.getGenreAll(name);
+    	HashMap<String, String> filters = new HashMap<>();
+    	if (name != null && !name.isEmpty()) 
+    		filters.put("name", name);    	
+    	service.getGenreAll(filters);
     }
     
     @ShellMethod(value = "показать информацию о жанре")
