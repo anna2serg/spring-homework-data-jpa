@@ -1,18 +1,23 @@
-spring.shell.interactive.enabled: false
-
-# Enabling H2 Console
-spring.h2.console.enabled: false
-
-spring.profiles.active: test
-spring.datasource.platform: test
-spring.datasource.initialization-mode: always
-spring.jpa.hibernate.ddl-auto: none
-spring.jpa.database-platform: org.hibernate.dialect.H2Dialect
-# PostgreSQLDialect
-spring.datasource.url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-spring.datasource.driverClassName: org.h2.Driver
-spring.datasource.username: sa
-spring.datasource.password: 
-
 application: 
- fetchsize: 5
+  fetchsize: 5 
+
+spring:
+  datasource:
+    platform: test
+    initialization-mode: always
+    driverClassName: org.h2.Driver
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE 
+    username: sa 
+    password:
+  h2:
+    console:
+      enabled: false        
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: none   
+  profiles:
+    active: test            
+  shell:
+    interactive:
+      enabled: false      
