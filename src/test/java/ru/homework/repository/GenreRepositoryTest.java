@@ -1,7 +1,6 @@
 package ru.homework.repository;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -15,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
@@ -27,6 +27,9 @@ import ru.homework.domain.Genre;
 @ActiveProfiles({"test"})
 @AutoConfigureTestDatabase(connection=EmbeddedDatabaseConnection.H2)
 public class GenreRepositoryTest {
+	
+	@Autowired
+	private TestEntityManager entityManager;
 	
 	@Autowired
 	private GenreRepository genreRepository;	
@@ -42,48 +45,14 @@ public class GenreRepositoryTest {
     @Rollback(true)	
 	public void testInsert() {
 		Genre testGenre = new Genre("Изобразительное искусство");
-		genreRepository.save(testGenre);
+		this.entityManager.persist(testGenre);
 		Genre dbGenre = genreRepository.findById(testGenre.getId()).orElse(null);
 		assertEquals(testGenre, dbGenre);
 	}		
 	
 	@Test
     @Rollback(true)	
-	public void testUpdate() {
-		Genre testGenre = new Genre("Изобразительное искусство");
-		genreRepository.save(testGenre);		
-		testGenre.setName("Изобразительное искусство и фотография");
-		genreRepository.save(testGenre);
-		Genre dbGenre = genreRepository.findById(testGenre.getId()).orElse(null);
-		assertFalse(dbGenre == null);
-		assertEquals(testGenre.getName(), dbGenre.getName());	
-		dbGenre = genreRepository.findByName("Изобразительное искусство и фотография").orElse(null);
-		assertEquals(testGenre, dbGenre);		
-	}		
-		
-	@Test
-    @Rollback(true)	
-	public void testDelete() {
-		Genre testGenre = new Genre("Изобразительное искусство");
-		genreRepository.save(testGenre);
-		int testGenreId = testGenre.getId();
-		genreRepository.delete(testGenre);
-		Optional<Genre> dbGenre = genreRepository.findById(testGenreId);
-		assertEquals(dbGenre, Optional.empty());
-	}		
-	
-	@Test
-    @Rollback(true)	
-	public void testCount() {
-		long count = genreRepository.count();
-		Genre testGenre = new Genre("Изобразительное искусство");
-		genreRepository.save(testGenre);
-		assertTrue(genreRepository.count() == (count + 1));
-	}	
-	
-	@Test
-    @Rollback(true)	
-	public void testGetAll() {
+	public void testFindAllByFilters() {
 		Genre genre1 = new Genre("Биографии и мемуары"); 
 		genreRepository.save(genre1);
 		Genre genre2 = new Genre("Изобразительное искусство и фотография");
@@ -92,7 +61,7 @@ public class GenreRepositoryTest {
 		filters.put("name", "граф");
 		int count = (int) genreRepository.count();
 		List<Genre> genres = new ArrayList<>();
-		genreRepository.findAll(PageRequest.of(0, count)).forEach(genres::add);;
+		genreRepository.findAllByFilters(filters, PageRequest.of(0, count)).forEach(genres::add);
 		assertTrue(genres.contains(genre1));
 		assertTrue(genres.contains(genre2));
 	}

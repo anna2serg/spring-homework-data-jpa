@@ -5,7 +5,7 @@ spring:
   datasource:
     platform: dev
     initialization-mode: always
-    url: jdbc:postgresql://localhost:5433/bookcardDB 
+    url: jdbc:postgresql://localhost:5432/bookcardDB 
     username: scribe 
     password: scribe 
   jpa:
